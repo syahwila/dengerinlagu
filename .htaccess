@@ -1,0 +1,62 @@
+# ========================================================
+# DENGERINLAGU — Apache Production .htaccess
+# Target: cPanel Shared Hosting (Apache 2.4+)
+# Domain: https://dengerinlagu.co-id.id
+# ========================================================
+
+Options -Indexes +FollowSymLinks
+DirectoryIndex index.html index.php
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # 1. Force HTTPS
+    RewriteCond %{HTTPS} off
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+    # 2. Block direct access to sensitive files and directories
+    RewriteRule ^(\.env|\.git|database/.*\.sql|backend/config/.*|composer\.(json|lock)|package(-lock)?\.json) - [F,L]
+
+    # 3. Route API calls to Native PHP 8.2 Backend Router
+    RewriteCond %{REQUEST_URI} ^/api/ [NC]
+    RewriteRule ^api/(.*)$ backend/api/index.php [QSA,L]
+
+    # 4. Route bot & social crawlers for SEO-friendly server-rendered pages
+    RewriteCond %{HTTP_USER_AGENT} (googlebot|bingbot|yandex|twitterbot|facebookexternalhit|whatsapp|telegrambot|discordbot) [NC]
+    RewriteCond %{REQUEST_URI} ^/lagu/([a-zA-Z0-9_-]+) [NC]
+    RewriteRule ^lagu/(.*)$ backend/templates/seo_ssr.php?slug=$1 [QSA,L]
+
+    # 5. Serve existing files directly (dist JS, CSS, images, etc.)
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # 6. Fallback all other routes to React SPA frontend (index.html)
+    RewriteRule ^ index.html [L]
+</IfModule>
+
+# Security Headers
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-XSS-Protection "1; mode=block"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# Caching for Static Assets
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/webp "access plus 1 month"
+    ExpiresByType image/png "access plus 1 month"
+    ExpiresByType image/jpeg "access plus 1 month"
+    ExpiresByType image/svg+xml "access plus 1 month"
+    ExpiresByType text/css "access plus 1 week"
+    ExpiresByType application/javascript "access plus 1 week"
+    ExpiresByType font/woff2 "access plus 1 year"
+</IfModule>
+
+# GZIP Compression
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/plain text/html text/xml text/css application/xml application/xhtml+xml application/rss+xml application/javascript application/x-javascript application/json
+</IfModule>
