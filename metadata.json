@@ -1,6 +1,0 @@
-{
-  "name": "DENGERINLAGU",
-  "description": "Portal musik all-in-one Indonesia: streaming preview, lirik berlisensi, tangga lagu, berita musik, DJ remix, dan tutorial AI musik.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}
